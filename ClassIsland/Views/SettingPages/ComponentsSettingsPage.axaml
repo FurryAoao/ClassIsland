@@ -14,6 +14,9 @@
                   mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
                   x:Class="ClassIsland.Views.SettingPages.ComponentsSettingsPage"
                   d:DataContext="{d:DesignInstance settingPages:ComponentsSettingsPage}">
+    <ci:SettingsPageBase.Resources>
+        <converters:TemporaryLineVisibilityToIntConverter x:Key="TemporaryLineVisibilityToIntConverter" />
+    </ci:SettingsPageBase.Resources>
     <ci:SettingsPageBase.Styles>
         <Style Selector="ListBox.drag-source ListBoxItem">
             <Setter Property="Interaction.Behaviors">
@@ -439,6 +442,25 @@
                                         <ToggleSwitch VerticalAlignment="Center"
                                                       IsChecked="{Binding HideOnRule}" />
                                     </StackPanel>
+                                </controls:SettingsExpander.Footer>
+                            </controls:SettingsExpander>
+                            <!-- 临时栏模式 -->
+                            <controls:SettingsExpander IconSource="{ci:FluentIconSource &#xE15F;}"
+                                                       Header="临时栏模式"
+                                                       Description="启用后，此主界面行只会在指定的时间状态下显示，其余时间自动隐藏。">
+                                <controls:SettingsExpander.Footer>
+                                    <ComboBox SelectedIndex="{Binding TemporaryLineVisibility, Converter={StaticResource TemporaryLineVisibilityToIntConverter}}"
+                                              MinWidth="120">
+                                        <ComboBoxItem>
+                                            始终显示
+                                        </ComboBoxItem>
+                                        <ComboBoxItem>
+                                            仅上课时
+                                        </ComboBoxItem>
+                                        <ComboBoxItem>
+                                            仅课间时
+                                        </ComboBoxItem>
+                                    </ComboBox>
                                 </controls:SettingsExpander.Footer>
                             </controls:SettingsExpander>
                             <!-- 不透明度 -->

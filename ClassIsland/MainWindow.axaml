@@ -371,6 +371,7 @@
                                                                         IsMainLine="{Binding IsMainLine}"
                                                                         IsNotificationEnabled="{Binding IsNotificationEnabled}"
                                                                         LineNumber="0"
+                                                                        TemporaryLineVisibility="{Binding TemporaryLineVisibility, Mode=OneWay}"
                                                                         HidingRules="{Binding HidingRules,Mode=OneWay}"
                                                                         HideOnRule="{Binding HideOnRule,Mode=OneWay}"
                                                                         HorizontalAlignment="Stretch"

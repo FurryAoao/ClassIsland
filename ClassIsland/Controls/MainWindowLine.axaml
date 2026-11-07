@@ -31,6 +31,7 @@
             <Setter.Value>
                 <MultiBinding Converter="{x:Static BoolConverters.Or}">
                     <MultiBinding Converter="{x:Static BoolConverters.And}">
+                        <Binding Path="!Settings.IsHiddenByTemporaryLineMode" RelativeSource="{RelativeSource Self}"/>
                         <MultiBinding Converter="{StaticResource BooleanOrExpressionMultiConverter}">
                             <Binding Path="!IsAllComponentsHid" RelativeSource="{RelativeSource Self}" />
                             <Binding Path="IsOverlayOpen" RelativeSource="{RelativeSource Self}"/>

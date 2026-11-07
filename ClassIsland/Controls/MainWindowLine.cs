@@ -37,6 +37,7 @@ using ClassIsland.Core.Abstractions.Services;
 using ClassIsland.Core.Abstractions.Services.SpeechService;
 using ClassIsland.Core.Assists;
 using ClassIsland.Core.Controls;
+using ClassIsland.Core.Enums;
 using ClassIsland.Core.Models.Components;
 using ClassIsland.Core.Models.Notification;
 using ClassIsland.Models.EventArgs;
@@ -44,6 +45,7 @@ using ClassIsland.Platforms.Abstraction;
 using ClassIsland.Services;
 using ClassIsland.Shared;
 using ClassIsland.Shared.Abstraction.Models;
+using ClassIsland.Shared.Enums;
 using ClassIsland.Shared.Interfaces;
 using ClassIsland.Shared.Models.Notification;
 using ClassIsland.Views;
@@ -74,6 +76,19 @@ public class MainWindowLine : ContentControl, INotificationConsumer
     {
         get => GetValue(HideOnRuleProperty);
         set => SetValue(HideOnRuleProperty, value);
+    }
+
+    public static readonly StyledProperty<LineTimeStateVisibility> TemporaryLineVisibilityProperty =
+        AvaloniaProperty.Register<MainWindowLine, LineTimeStateVisibility>(nameof(TemporaryLineVisibility),
+            LineTimeStateVisibility.Always);
+
+    /// <summary>
+    /// 临时栏模式。启用后，此主界面行只会在指定的时间状态下显示。
+    /// </summary>
+    public LineTimeStateVisibility TemporaryLineVisibility
+    {
+        get => GetValue(TemporaryLineVisibilityProperty);
+        set => SetValue(TemporaryLineVisibilityProperty, value);
     }
     
     public static readonly StyledProperty<Core.Models.Ruleset.Ruleset?> HidingRulesProperty = AvaloniaProperty.Register<MainWindowLine, Core.Models.Ruleset.Ruleset?>(
@@ -286,6 +301,8 @@ public class MainWindowLine : ContentControl, INotificationConsumer
 
     private IAudioService AudioService { get; } = IAppHost.GetService<IAudioService>();
 
+    private ILessonsService LessonsService { get; } = IAppHost.GetService<ILessonsService>();
+
     private Grid? GridWrapper;
     
     private PixelPoint _centerPointCache = new PixelPoint(0, 0);
@@ -308,6 +325,8 @@ public class MainWindowLine : ContentControl, INotificationConsumer
             UpdateVisibilityState, RoutingStrategies.Bubble);
         this.GetObservable(HidingRulesProperty).Subscribe(new AnonymousObserver<Core.Models.Ruleset.Ruleset?>(_ => UpdateRuleState()));
         this.GetObservable(HideOnRuleProperty).Subscribe(new AnonymousObserver<bool>(_ => UpdateRuleState()));
+        this.GetObservable(TemporaryLineVisibilityProperty)
+            .Subscribe(new AnonymousObserver<LineTimeStateVisibility>(_ => UpdateTemporaryLineState()));
         this.GetObservable(WindowDockingLocationProperty)
             .Skip(1)
             .Subscribe(_ => UpdateStyleStates());
@@ -412,6 +431,26 @@ public class MainWindowLine : ContentControl, INotificationConsumer
         if (Settings != null) Settings.IsVisible = IsVisibleInternal;
     }
 
+    /// <summary>
+    /// 根据当前时间状态更新临时栏模式的隐藏状态。
+    /// </summary>
+    private void UpdateTemporaryLineState()
+    {
+        var isHidden = TemporaryLineVisibility switch
+        {
+            LineTimeStateVisibility.OnClassOnly => LessonsService.CurrentState != TimeState.OnClass,
+            LineTimeStateVisibility.BreakingOnly => LessonsService.CurrentState != TimeState.Breaking,
+            _ => false
+        };
+
+        if (Settings != null && Settings.IsHiddenByTemporaryLineMode != isHidden)
+        {
+            Settings.IsHiddenByTemporaryLineMode = isHidden;
+        }
+    }
+
+    private void LessonsServiceOnCurrentTimeStateChanged(object? sender, EventArgs e) => UpdateTemporaryLineState();
+
     private void UpdateStyleStates()
     {
         PseudoClasses.Set(":dock-left", WindowDockingLocation is 0 or 3);
@@ -444,7 +483,11 @@ public class MainWindowLine : ContentControl, INotificationConsumer
             Settings.PropertyChanged -= MySettingsOnPropertyChanged;
             Settings.PropertyChanged += MySettingsOnPropertyChanged;
         }
-        
+
+        LessonsService.CurrentTimeStateChanged -= LessonsServiceOnCurrentTimeStateChanged;
+        LessonsService.CurrentTimeStateChanged += LessonsServiceOnCurrentTimeStateChanged;
+        UpdateTemporaryLineState();
+
         UpdateStyles();
         _isLoadCompleted = true;
     }
@@ -457,6 +500,7 @@ public class MainWindowLine : ContentControl, INotificationConsumer
         MainWindow.MainWindowAnimationEvent -= MainWindowOnMainWindowAnimationEvent;
         SettingsService.Settings.PropertyChanged -= SettingsOnPropertyChanged;
         NotificationHostService.UnregisterNotificationConsumer(this);
+        LessonsService.CurrentTimeStateChanged -= LessonsServiceOnCurrentTimeStateChanged;
         if (Settings != null)
         {
             Settings.PropertyChanged -= MySettingsOnPropertyChanged;
@@ -811,5 +855,5 @@ public class MainWindowLine : ContentControl, INotificationConsumer
     }
 
     public int QueuedNotificationCount => _notificationQueue.Count;
-    public bool AcceptsNotificationRequests => IsNotificationEnabled && !IsAllComponentsHid && !_isOverlayOpen && !_isUnloading;
+    public bool AcceptsNotificationRequests => IsNotificationEnabled && !IsAllComponentsHid && !(Settings?.IsHiddenByTemporaryLineMode ?? false) && !_isOverlayOpen && !_isUnloading;
 }

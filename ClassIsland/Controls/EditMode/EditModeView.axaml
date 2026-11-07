@@ -8,6 +8,7 @@
              xmlns:controls="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
              xmlns:settingPages="clr-namespace:ClassIsland.Views.SettingPages"
              xmlns:components="clr-namespace:ClassIsland.Core.Models.Components;assembly=ClassIsland.Core"
+             xmlns:converters="clr-namespace:ClassIsland.Converters"
              xmlns:attributes="clr-namespace:ClassIsland.Core.Attributes;assembly=ClassIsland.Core"
              xmlns:input="clr-namespace:Avalonia.Labs.Input;assembly=Avalonia.Labs.CommandManager"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -21,6 +22,7 @@
     </input:CommandManager.CommandBindings>
     <UserControl.Resources>
         <ci:RulesetControl x:Key="RulesetControl" Width="500"/>
+        <converters:TemporaryLineVisibilityToIntConverter x:Key="TemporaryLineVisibilityToIntConverter" />
         <DataTemplate x:DataType="attributes:ComponentInfo"
                       x:Key="ComponentInfoPreviewEffect">
             <Border Background="{DynamicResource AcrylicBackgroundFillColorDefaultBrush}"
@@ -315,6 +317,25 @@
                       x:Key="MainWindowLineSettingsDrawer"
                       DataContext="{Binding ViewModel.SelectedMainWindowLineSettings}">
             <StackPanel Classes="settings-container animated-intro" >
+                <!-- 临时栏模式 -->
+                <controls:SettingsExpander IconSource="{ci:FluentIconSource &#xE15F;}"
+                                           Header="临时栏模式"
+                                           Description="启用后，此主界面行只会在指定的时间状态下显示，其余时间自动隐藏。">
+                    <controls:SettingsExpander.Footer>
+                        <ComboBox SelectedIndex="{Binding TemporaryLineVisibility, Converter={StaticResource TemporaryLineVisibilityToIntConverter}}"
+                                  MinWidth="120">
+                            <ComboBoxItem>
+                                始终显示
+                            </ComboBoxItem>
+                            <ComboBoxItem>
+                                仅上课时
+                            </ComboBoxItem>
+                            <ComboBoxItem>
+                                仅课间时
+                            </ComboBoxItem>
+                        </ComboBox>
+                    </controls:SettingsExpander.Footer>
+                </controls:SettingsExpander>
                 <!-- 不透明度 -->
                 <controls:SettingsExpander IconSource="{ci:FluentIconSource &#xf023;}"
                                            Header="分体主界面"

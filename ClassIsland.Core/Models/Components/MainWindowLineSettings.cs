@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 using Avalonia.Media;
 using ClassIsland.Core.Abstractions.Models.Components;
+using ClassIsland.Core.Enums;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace ClassIsland.Core.Models.Components;
@@ -48,4 +49,15 @@ public partial class MainWindowLineSettings : ObservableObject, IMainWindowCusto
     /// 0 - 默认;1 - 禁用;2 - 启用
     /// </summary>
     [ObservableProperty] private int _islandSeparationMode = 0;
+
+    /// <summary>
+    /// 临时栏模式。启用后，此主界面行只会在指定的时间状态下显示。
+    /// </summary>
+    [ObservableProperty] private LineTimeStateVisibility _temporaryLineVisibility = LineTimeStateVisibility.Always;
+
+    /// <summary>
+    /// 当前是否因为临时栏模式而被隐藏。此属性仅用于界面反馈，不参与持久化。
+    /// </summary>
+    [property: JsonIgnore]
+    [ObservableProperty] private bool _isHiddenByTemporaryLineMode = false;
 }
